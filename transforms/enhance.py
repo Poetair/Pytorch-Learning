@@ -6,6 +6,7 @@ from tools.dataload import DataSet
 from torchvision import transforms
 from torch.utils.data import DataLoader
 from tools.transform_inverse import transform_inverse
+import tools.my_transforms as my_transforms
 
 label_name = {'masking': 1, 'unmasking': 0}
 BATCH_SIZE = 1
@@ -45,8 +46,18 @@ transform = transforms.Compose([
     # transforms.RandomAffine(degrees=0, translate=(0.2, 0.5)),
     # transforms.RandomAffine(degrees=0, scale=(0.5, 1.5), fillcolor=(255, 0, 255)),
     # transforms.RandomAffine(degrees=0, shear=(40, 40), fillcolor=(0, 255, 255)),
+
+    # transforms.RandomChoice( [transforms.RandomGrayscale(1), transforms.ColorJitter(hue=0.5),
+    # transforms.RandomRotation(60, resample=2)]), transforms.RandomApply([transforms.Pad(50, fill=(100, 130, 110)),
+    # transforms.RandomAffine(degrees=0, shear=40), transforms.RandomVerticalFlip(1)], 0.5),
+    # transforms.RandomOrder([transforms.Pad(100, fill=(100, 130, 110)), transforms.CenterCrop(200)]),
+
+    # my_transforms.AddSaltPepperNoise(0.2),
+    my_transforms.AddGaussianNoise(mean=0, variance=1, amplitude=20),
     transforms.ToTensor(),
-    transforms.RandomErasing(scale=(0.1, 0.15), value=(100, 130, 110), ratio=(1, 1)),
+
+    # transforms.RandomErasing(value=(100, 130, 110)),
+    # transforms.RandomErasing(scale=(0.1, 0.15), value='xyz', ratio=(1, 1)),
 
     transforms.Normalize(mean=mean, std=std),
 
@@ -62,15 +73,16 @@ if __name__ == '__main__':
         img = iter(train_loader).next()[0]
         img = torch.squeeze(img, dim=0)
         print(img.shape)
-        if len(img.shape) == 4:                                 # 多张图片组成的四维张量
+        if len(img.shape) == 4:  # 多张图片组成的四维张量
             for i in range(len(img)):
                 pil_img = transform_inverse(img[i], transform)
-                ax1 = plt.subplot(3, 4, i+2)
+                ax1 = plt.subplot(3, 4, i + 2)
                 ax1.set_title('processed image')
                 ax1.imshow(pil_img)
         elif len(img.shape) == 3:
             pil_img = transform_inverse(img, transform)
-            ax1 = plt.subplot(2, 3, epoch+1)
+            ax1 = plt.subplot(2, 3, epoch + 1)
             ax1.set_title('processed image')
             ax1.imshow(pil_img)
+
     plt.show()
